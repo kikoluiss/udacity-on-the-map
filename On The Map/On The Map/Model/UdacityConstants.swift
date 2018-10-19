@@ -7,3 +7,23 @@
 //
 
 import Foundation
+
+extension UdacityClient {
+
+    // MARK: Constants
+    struct Constants {
+        
+        // MARK: URLs
+        static let ApiScheme = "https"
+        static let ApiHost = "www.udacity.com"
+        static let ApiPath = "/api"
+        
+    }
+
+    // MARK: Methods
+    struct Methods {
+
+        static let Session = "/session"
+
+    }
+}
