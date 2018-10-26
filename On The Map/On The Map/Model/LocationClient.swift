@@ -8,7 +8,10 @@
 
 import Foundation
 
-class ParseClient: NSObject {
+class LocationClient: NSObject {
+    
+    // overwrite registry?
+    var objectId: String?
     
     // shared session
     var session = URLSession.shared
@@ -74,7 +77,6 @@ class ParseClient: NSObject {
         request.httpMethod = "POST"
         request.addValue(Constants.ApiId, forHTTPHeaderField: "X-Parse-Application-Id")
         request.addValue(Constants.ApiKey, forHTTPHeaderField: "X-Parse-REST-API-Key")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonBody.data(using: String.Encoding.utf8)
         
@@ -124,7 +126,6 @@ class ParseClient: NSObject {
         request.httpMethod = "PUT"
         request.addValue(Constants.ApiId, forHTTPHeaderField: "X-Parse-Application-Id")
         request.addValue(Constants.ApiKey, forHTTPHeaderField: "X-Parse-REST-API-Key")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonBody.data(using: String.Encoding.utf8)
         
@@ -195,9 +196,9 @@ class ParseClient: NSObject {
     private func parseURLFromParameters(_ parameters: [String:AnyObject], withPathExtension: String? = nil) -> URL {
         
         var components = URLComponents()
-        components.scheme = ParseClient.Constants.ApiScheme
-        components.host = ParseClient.Constants.ApiHost
-        components.path = ParseClient.Constants.ApiPath + (withPathExtension ?? "")
+        components.scheme = Constants.ApiScheme
+        components.host = Constants.ApiHost
+        components.path = Constants.ApiPath + (withPathExtension ?? "")
         components.queryItems = [URLQueryItem]()
         
         for (key, value) in parameters {
@@ -210,9 +211,9 @@ class ParseClient: NSObject {
     
     // MARK: Shared Instance
     
-    class func sharedInstance() -> ParseClient {
+    class func sharedInstance() -> LocationClient {
         struct Singleton {
-            static var sharedInstance = ParseClient()
+            static var sharedInstance = LocationClient()
         }
         return Singleton.sharedInstance
     }

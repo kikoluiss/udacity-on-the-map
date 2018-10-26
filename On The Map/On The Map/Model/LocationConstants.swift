@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension ParseClient {
+extension LocationClient {
 
     // MARK: Constants
     struct Constants {
@@ -30,6 +30,21 @@ extension ParseClient {
         static let StudentLocation = "/StudentLocation"
         static let StudentLocationID = "/StudentLocation/{id}"
 
+    }
+    
+    // MARK: URL Keys
+    struct URLKeys {
+        static let UserID = "id"
+    }
+    
+    // MARK: JSON Response Keys
+    struct JSONResponseKeys {
+        
+        // MARK: General
+        static let StatusMessage = "status_message"
+        static let StatusCode = "status_code"
+        static let Results = "results"
+        
     }
 
 }

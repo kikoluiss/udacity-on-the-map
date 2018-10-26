@@ -24,6 +24,35 @@ extension UdacityClient {
     struct Methods {
 
         static let Session = "/session"
+        static let UsersID = "/users/{id}"
 
     }
+    
+    // MARK: URL Keys
+    struct URLKeys {
+        static let UserID = "id"
+    }
+
+    // MARK: JSON Response Keys
+    struct JSONResponseKeys {
+        
+        // MARK: General
+        static let StatusMessage = "status_message"
+        static let StatusCode = "status_code"
+        
+        // MARK: Authorization
+        static let Session = "session"
+        static let SessionID = "id"
+        
+        // MARK: Account
+        static let Account = "account"
+        static let AccountKey = "key"
+        
+        // MARK: User
+        static let User = "user"
+        static let UserFirstName = "first_name"
+        static let UserLastName = "last_name"
+    
+    }
+    
 }

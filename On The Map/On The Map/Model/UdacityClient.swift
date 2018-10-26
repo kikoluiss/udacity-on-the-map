@@ -10,6 +10,14 @@ import Foundation
 
 class UdacityClient: NSObject {
     
+    // account
+    var accountKey: String?
+    
+    // user
+    var userFullName: String?
+    var userFirstName: String?
+    var userLastName: String?
+    
     // shared session
     var session = URLSession.shared
     
@@ -19,6 +27,59 @@ class UdacityClient: NSObject {
         super.init()
     }
     
+    // MARK: GET
+    
+    func taskForGETMethod(_ method: String, parameters: [String:AnyObject], completionHandlerForGET: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+        
+        /* Build the URL, Configure the request */
+        let request = NSMutableURLRequest(url: parseURLFromParameters(parameters, withPathExtension: method))
+        
+        /* Make the request */
+        let task = session.dataTask(with: request as URLRequest) { (data, response, error) in
+            
+            func sendError(_ error: String) {
+                print(error)
+                let userInfo = [NSLocalizedDescriptionKey : error]
+                completionHandlerForGET(nil, NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
+            }
+            
+            /* GUARD: Was there an error? */
+            guard (error == nil) else {
+                sendError("There was an error with your request: \(error!)")
+                return
+            }
+            
+            /* GUARD: Forbidden for invalide credentials */
+            guard let statusCodeForbidden = (response as? HTTPURLResponse)?.statusCode, statusCodeForbidden != 403 else {
+                sendError("Invalid credentials")
+                return
+            }
+
+            /* GUARD: Did we get a successful 2XX response? */
+            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
+                sendError("Your request returned a status code other than 2xx!")
+                return
+            }
+            
+            /* GUARD: Was there any data returned? */
+            guard let data = data else {
+                sendError("No data was returned by the request!")
+                return
+            }
+            
+            let range = 5..<data.count
+            let newData = data.subdata(in: range) /* subset response data! */
+            
+            /* Parse the data and use the data (happens in completion handler) */
+            self.convertDataWithCompletionHandler(newData, completionHandlerForConvertData: completionHandlerForGET)
+        }
+        
+        /* Start the request */
+        task.resume()
+        
+        return task
+    }
+
     // MARK: POST
     
     func taskForPOSTMethod(_ method: String, parameters: [String:AnyObject], jsonBody: String, completionHandlerForPOST: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
@@ -157,24 +218,24 @@ class UdacityClient: NSObject {
     private func parseURLFromParameters(_ parameters: [String:AnyObject], withPathExtension: String? = nil) -> URL {
         
         var components = URLComponents()
-        components.scheme = ParseClient.Constants.ApiScheme
-        components.host = ParseClient.Constants.ApiHost
-        components.path = ParseClient.Constants.ApiPath + (withPathExtension ?? "")
+        components.scheme = UdacityClient.Constants.ApiScheme
+        components.host = UdacityClient.Constants.ApiHost
+        components.path = UdacityClient.Constants.ApiPath + (withPathExtension ?? "")
         components.queryItems = [URLQueryItem]()
         
         for (key, value) in parameters {
             let queryItem = URLQueryItem(name: key, value: "\(value)")
             components.queryItems!.append(queryItem)
         }
-        
+                
         return components.url!
     }
     
     // MARK: Shared Instance
     
-    class func sharedInstance() -> ParseClient {
+    class func sharedInstance() -> UdacityClient {
         struct Singleton {
-            static var sharedInstance = ParseClient()
+            static var sharedInstance = UdacityClient()
         }
         return Singleton.sharedInstance
     }
