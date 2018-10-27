@@ -13,6 +13,8 @@ class SaveLocationViewController: UIViewController {
     
     @IBOutlet weak var mapView: MKMapView!
     
+    var sv: UIView!
+    
     var currLocation: StudentInformationToSend?
     
     var searchText: String?
@@ -28,6 +30,7 @@ class SaveLocationViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         if let searchText = searchText {
+            self.sv = UIViewController.displaySpinner(onView: self.view)
             searchCompleter.queryFragment = searchText
         }
     }
@@ -67,44 +70,54 @@ class SaveLocationViewController: UIViewController {
 extension SaveLocationViewController: MKLocalSearchCompleterDelegate {
     
     func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
-        searchResults = completer.results
-        let completion = searchResults[0]
-        
-        let searchRequest = MKLocalSearch.Request(completion: completion)
-        let search = MKLocalSearch(request: searchRequest)
-        search.start { (response, error) in
-            if let coordinate = response?.mapItems[0].placemark.coordinate {
+        if completer.results.count > 0 {
+            let completion = completer.results[0]
+            
+            let searchRequest = MKLocalSearch.Request(completion: completion)
+            let search = MKLocalSearch(request: searchRequest)
 
-                let first = UdacityClient.sharedInstance().userFirstName
-                let last = UdacityClient.sharedInstance().userLastName
+            search.start { (response, error) in
+                UIViewController.removeSpinner(spinner: self.sv)
+                performUIUpdatesOnMain {
 
-                var annotations = [MKPointAnnotation]()
-                
-                let annotation = MKPointAnnotation()
-                annotation.coordinate = coordinate
-                annotation.title = response?.mapItems[0].placemark.title
-                
-                annotations.append(annotation)
-                
-                self.mapView.addAnnotations(annotations)
-                
-                self.mapView.showAnnotations(annotations, animated: false)
-                
-                self.currLocation = StudentInformationToSend(infos: [
-                    "uniqueKey": UdacityClient.sharedInstance().accountKey ?? "",
-                    "firstName": first ?? "",
-                    "lastName": last ?? "",
-                    "mapString": response?.mapItems[0].placemark.title ?? "",
-                    "mediaURL": self.mediaURL ?? "",
-                    "latitude": Double(coordinate.latitude.description) ?? 0.0,
-                    "longitude": Double(coordinate.longitude.description) ?? 0.0
-                ])
-                
+                    if let coordinate = response?.mapItems[0].placemark.coordinate {
+                        
+                        let first = UdacityClient.sharedInstance().userFirstName
+                        let last = UdacityClient.sharedInstance().userLastName
+                        
+                        var annotations = [MKPointAnnotation]()
+                        
+                        let annotation = MKPointAnnotation()
+                        annotation.coordinate = coordinate
+                        annotation.title = response?.mapItems[0].placemark.title
+                        
+                        annotations.append(annotation)
+                        
+                        self.mapView.addAnnotations(annotations)
+                        
+                        self.mapView.showAnnotations(annotations, animated: false)
+                        
+                        self.currLocation = StudentInformationToSend(infos: [
+                            "uniqueKey": UdacityClient.sharedInstance().accountKey ?? "",
+                            "firstName": first ?? "",
+                            "lastName": last ?? "",
+                            "mapString": response?.mapItems[0].placemark.title ?? "",
+                            "mediaURL": self.mediaURL ?? "",
+                            "latitude": Double(coordinate.latitude.description) ?? 0.0,
+                            "longitude": Double(coordinate.longitude.description) ?? 0.0
+                            ])
+                        
+                    }
+                }
             }
+        } else {
+            UIViewController.removeSpinner(spinner: self.sv)
+            GeneralUtilities.sharedInstance().displayError("No location found. Please return to previous view and try again!", self)
         }
     }
     
     func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
+        UIViewController.removeSpinner(spinner: self.sv)
         GeneralUtilities.sharedInstance().displayError(error.localizedDescription, self)
     }
     

@@ -46,9 +46,13 @@ extension LocationClient {
                 completionHandlerForLocationWithKey(false, "Failed to Load Pins: \(error.localizedDescription).")
             } else {
                 if let locations = results?[LocationClient.JSONResponseKeys.Results] as? [[String:Any]] {
-                    let studentInformation = StudentInformation(infos: locations[0])
-                    LocationClient.sharedInstance().objectId = studentInformation.objectId
-                    completionHandlerForLocationWithKey(true, nil)
+                    if locations.count > 0 {
+                        let studentInformation = StudentInformation(infos: locations[0])
+                        LocationClient.sharedInstance().objectId = studentInformation.objectId
+                        completionHandlerForLocationWithKey(true, nil)
+                    } else {
+                        completionHandlerForLocationWithKey(false, nil)
+                    }
                 } else {
                     completionHandlerForLocationWithKey(false, nil)
                 }

@@ -16,6 +16,8 @@ class TabMapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        mapView.delegate = self
+        
         NotificationCenter.default.addObserver(self, selector: #selector(loadLocations), name: NSNotification.Name(rawValue: tabMapNotificationKey), object: nil)
     }
 
@@ -31,13 +33,15 @@ class TabMapViewController: UIViewController, MKMapViewDelegate {
         let sv = UIViewController.displaySpinner(onView: self.view)
         LocationClient.sharedInstance().retrieveStudentLocations() { (success, errorString) in
             UIViewController.removeSpinner(spinner: sv)
-            if success {
-                self.setPinsOnMap()
-            } else {
-                if let errorString = errorString {
-                    GeneralUtilities.sharedInstance().displayError(errorString, self)
+            performUIUpdatesOnMain {
+                if success {
+                    self.setPinsOnMap()
                 } else {
-                    GeneralUtilities.sharedInstance().displayError("Unknown error", self)
+                    if let errorString = errorString {
+                        GeneralUtilities.sharedInstance().displayError(errorString, self)
+                    } else {
+                        GeneralUtilities.sharedInstance().displayError("Unknown error", self)
+                    }
                 }
             }
         }
@@ -75,7 +79,16 @@ class TabMapViewController: UIViewController, MKMapViewDelegate {
             
             // When the array is complete, we add the annotations to the map.
             self.mapView.addAnnotations(annotations)
-
+            
         }
+    }
+    
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        if let urlString = view.annotation?.subtitle as? String,
+            let url = URL(string: urlString) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
+
+        
     }
 }
